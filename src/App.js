@@ -24,6 +24,8 @@ import RadioGroup from '@mui/material/RadioGroup';
 import FormControlLabel from '@mui/material/FormControlLabel';
 import FormControl from '@mui/material/FormControl';
 import FormLabel from '@mui/material/FormLabel';
+import EditIcon from '@mui/icons-material/Edit';
+import HighlightOffIcon from '@mui/icons-material/HighlightOff';
 import { DemoContainer } from '@mui/x-date-pickers/internals/demo';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
@@ -34,46 +36,164 @@ import './App.css';
 function App() {
   const dayjs = require('dayjs');
 
-  function createData(title, description, deadline, priority, isComplete, action) {
-    return { title, description, deadline, priority, isComplete, action };
+  // true if the user is adding a new task, false if the user is editing an existing task
+  const [action, setAction] = React.useState(true);
+
+  function createData(title, description, deadline, priority, isComplete, actions) {
+    return { title, description, deadline, priority, isComplete, actions };
   }
 
-  const [rows, setRows] = React.useState([
-    createData('title01', 'description01', new Date(2021, 0, 1).toLocaleDateString(), 'med', false, 'action'),
-  ]);
+  function actions(title) {
+    return [updateButton(title), deleteButton(title)];
+  }
 
-  const [addTaskDialogOpen, setAddTaskDialogOpen] = React.useState(false);
+  const [rows, setRows] = React.useState([]);
+
+  const [taskToUpdate, setTaskToUpdate] = React.useState(null);
+
+  const [taskDialogOpen, setTaskDialogOpen] = React.useState(false);
+
   const [task, setTask] = React.useState({
     title: '',
     description: '',
-    deadline: null,
-    priority: '',
+    deadline: dayjs().toString(),
+    priority: 'Low',
     isComplete: false
   });
 
   const [taskInputError, setTaskInputError] = React.useState({
-    title: true,
-    description: true
+    title: false,
+    description: false
   });
 
-  const openAddTaskDialog = () => {
-    setAddTaskDialogOpen(true);
+  const openTaskDialog = () => {
+    setTaskDialogOpen(true);
   };
 
-  const closeAddTaskDialog = () => {
-    setAddTaskDialogOpen(false);
+  const closeTaskDialog = () => {
+    setTaskDialogOpen(false);
+    setTaskInputError({
+      title: false,
+      description: false
+    })
   };
 
-  const closeAddTaskDialogAndAddTask = () => {
-    setAddTaskDialogOpen(false);
-    setRows([...rows, createData(task.title, task.description, task.deadline, task.priority, task.isComplete, task.action)]);
-    setTask({
-      title: '',
-      description: '',
-      deadline: null,
-      priority: '',
-      isComplete: false
-    });
+  const closeTaskDialogAndDoAction = () => {
+    let isError = false;
+    if (task.title === '') {
+      // TODO: display message showing the error to the user
+      isError = true;
+      setTaskInputError({ ...taskInputError, title: true });
+    } else if (rows.some((row) => row.title === task.title)) {
+      // TODO: display message showing the error to the user
+      isError = true;
+      setTaskInputError({ ...taskInputError, title: true });
+    }
+    if (task.description === '') {
+      // TODO: display message showing the error to the user
+      isError = true;
+      setTaskInputError({ ...taskInputError, description: true });
+    }
+
+    if (isError) {
+      return;
+    }
+    setTaskDialogOpen(false);
+    if (action) {
+      // add new task
+      setRows([...rows, createData(task.title, task.description, task.deadline, task.priority, task.isComplete, actions(task.title))]);
+      setTask({
+        title: '',
+        description: '',
+        deadline: dayjs().toString(),
+        priority: 'Low',
+        isComplete: false
+      });
+    } else {
+      // edit existing task
+      if (taskToUpdate) {
+        setRows(rows.map((row) => row.title === taskToUpdate ? createData(task.title, task.description, task.deadline, task.priority, task.isComplete, actions(task.title)) : row));
+        setTaskToUpdate(null);
+      }
+    }
+
+  }
+
+  function deleteTask(title) {
+    setRows(rows.filter((row) => row.title !== title));
+  }
+
+  function deleteButton(title) {
+    return <Button onClick={() => deleteTask(title)}><HighlightOffIcon ></HighlightOffIcon>&nbsp;Delete</Button>
+  }
+
+  function updateButton(title) {
+    return <Button onClick={() => {
+      setAction(false);
+      setTaskToUpdate(title);
+      openTaskDialog();
+    }}><EditIcon></EditIcon>&nbsp;Edit</Button>
+  }
+
+  function taskDialog() {
+    return <Dialog open={taskDialogOpen} onClose={closeTaskDialog}>
+      <DialogTitle>{action ? 'Add Task' : 'Edit Task'}</DialogTitle>
+      <DialogContent>
+        <TextField
+          autoFocus
+          margin="dense"
+          id="title"
+          label="Title"
+          type="text"
+          fullWidth
+          variant="standard"
+          onChange={(e) => {
+            setTask({ ...task, title: e.target.value });
+            setTaskInputError({ ...taskInputError, title: e.target.value.length === 0 });
+          }}
+          required
+          error={taskInputError.title}
+        />
+        <TextField
+          autoFocus
+          margin="dense"
+          id="description"
+          label="Description"
+          type="text"
+          fullWidth
+          variant="standard"
+          onChange={(e) => {
+            setTask({ ...task, description: e.target.value });
+            setTaskInputError({ ...taskInputError, description: e.target.value.length === 0 });
+          }}
+          required
+          error={taskInputError.description}
+        />
+        <LocalizationProvider dateAdapter={AdapterDayjs}>
+          <DemoContainer components={['DatePicker']}>
+            <DatePicker label="Basic date picker" defaultValue={dayjs()} onChange={(e) => setTask({ ...task, deadline: e.toString() })} />
+          </DemoContainer>
+        </LocalizationProvider>
+        <FormControl>
+          <FormLabel id="radio-buttons-group-label">Priority</FormLabel>
+          <RadioGroup
+            row
+            aria-labelledby="radio-buttons-group-label"
+            name="row-radio-buttons-group"
+            onChange={(e) => setTask({ ...task, priority: e.target.value })}
+            defaultValue="Low"
+          >
+            <FormControlLabel value="Low" control={<Radio />} label="Low" />
+            <FormControlLabel value="Med" control={<Radio />} label="Med" />
+            <FormControlLabel value="High" control={<Radio />} label="High" />
+          </RadioGroup>
+        </FormControl>
+      </DialogContent>
+      <DialogActions>
+        <Button onClick={closeTaskDialogAndDoAction}>{action ? <AddCircleIcon ></AddCircleIcon> : <EditIcon></EditIcon>}&nbsp;{action ? 'Add' : 'Update'}</Button>
+        <Button onClick={closeTaskDialog}><CancelIcon ></CancelIcon>&nbsp;Cancel</Button>
+      </DialogActions>
+    </Dialog>
   }
 
   return (
@@ -92,65 +212,13 @@ function App() {
           <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
             FRAMEWORKS
           </Typography>
-          <Button color="inherit" variant="outlined" onClick={openAddTaskDialog}><AddCircleIcon ></AddCircleIcon>&nbsp;Add</Button>
+          <Button color="inherit" variant="outlined" onClick={() => {
+            setAction(true);
+            openTaskDialog();
+          }}><AddCircleIcon ></AddCircleIcon>&nbsp;Add</Button>
         </Toolbar>
       </AppBar>
-      <Dialog open={addTaskDialogOpen} onClose={closeAddTaskDialog}>
-        <DialogTitle>Add Task</DialogTitle>
-        <DialogContent>
-          <TextField
-            autoFocus
-            margin="dense"
-            id="title"
-            label="Title"
-            type="text"
-            fullWidth
-            variant="standard"
-            onChange={(e) => {
-              setTask({ ...task, title: e.target.value });
-              setTaskInputError({ ...taskInputError, title: e.target.value.length === 0 });
-            }}
-            required
-            error={taskInputError.title}
-          />
-          <TextField
-            autoFocus
-            margin="dense"
-            id="description"
-            label="Description"
-            type="text"
-            fullWidth
-            variant="standard"
-            onChange={(e) => {
-              setTask({ ...task, description: e.target.value });
-              setTaskInputError({ ...taskInputError, description: e.target.value.length === 0 });
-            }}
-            required
-            error={taskInputError.description}
-          />
-          <LocalizationProvider dateAdapter={AdapterDayjs}>
-            <DemoContainer components={['DatePicker']}>
-              <DatePicker label="Basic date picker" defaultValue={dayjs()} />
-            </DemoContainer>
-          </LocalizationProvider>
-          <FormControl>
-            <FormLabel id="radio-buttons-group-label">Priority</FormLabel>
-            <RadioGroup
-              row
-              aria-labelledby="radio-buttons-group-label"
-              name="row-radio-buttons-group"
-            >
-              <FormControlLabel value="Low" control={<Radio />} label="Low" />
-              <FormControlLabel value="Med" control={<Radio />} label="Med" />
-              <FormControlLabel value="High" control={<Radio />} label="High" />
-            </RadioGroup>
-          </FormControl>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={closeAddTaskDialogAndAddTask}><AddCircleIcon ></AddCircleIcon>&nbsp;Add</Button>
-          <Button onClick={closeAddTaskDialog}><CancelIcon ></CancelIcon>&nbsp;Cancel</Button>
-        </DialogActions>
-      </Dialog>
+      {taskDialog()}
       <TableContainer component={Paper}>
         <Table sx={{ minWidth: 650 }} aria-label="simple table">
           <TableHead>
@@ -176,7 +244,7 @@ function App() {
                 <TableCell align="left">{row.deadline}</TableCell>
                 <TableCell align="left">{row.priority}</TableCell>
                 <TableCell align="left">{row.isComplete}</TableCell>
-                <TableCell align="left">{row.action}</TableCell>
+                <TableCell align="left">{<div>{row.actions.map((action) => action)}</div>}</TableCell>
               </TableRow>
             ))}
           </TableBody>
