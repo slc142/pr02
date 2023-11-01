@@ -39,17 +39,19 @@ function App() {
   // true if the user is adding a new task, false if the user is editing an existing task
   const [action, setAction] = React.useState(true);
 
-  function createData(title, description, deadline, priority, isComplete, actions) {
-    return { title, description, deadline, priority, isComplete, actions };
+  const [id, setId] = React.useState(0);
+
+  function createData(id, title, description, deadline, priority, isComplete, actions) {
+    return { id, title, description, deadline, priority, isComplete, actions };
   }
 
-  function actions(title) {
-    return [updateButton(title), deleteButton(title)];
+  function actions(id) {
+    return [updateButton(id), deleteButton(id)];
   }
 
   const [rows, setRows] = React.useState([]);
 
-  const [taskToUpdate, setTaskToUpdate] = React.useState(null);
+  const [taskToUpdate, setTaskToUpdate] = React.useState(-1);
 
   const [taskDialogOpen, setTaskDialogOpen] = React.useState(false);
 
@@ -68,6 +70,7 @@ function App() {
 
   const openTaskDialog = () => {
     setTaskDialogOpen(true);
+    console.log(rows)
   };
 
   const closeTaskDialog = () => {
@@ -98,10 +101,11 @@ function App() {
     if (isError) {
       return;
     }
-    setTaskDialogOpen(false);
     if (action) {
       // add new task
-      setRows([...rows, createData(task.title, task.description, task.deadline, task.priority, task.isComplete, actions(task.title))]);
+      console.log(task)
+      setRows([...rows, createData(id, task.title, task.description, task.deadline, task.priority, task.isComplete, actions(id))]);
+      setId(id + 1);
       setTask({
         title: '',
         description: '',
@@ -111,26 +115,26 @@ function App() {
       });
     } else {
       // edit existing task
-      if (taskToUpdate) {
-        setRows(rows.map((row) => row.title === taskToUpdate ? createData(task.title, task.description, task.deadline, task.priority, task.isComplete, actions(task.title)) : row));
-        setTaskToUpdate(null);
+      if (taskToUpdate !== -1) {
+        setRows(rows.map((row) => row.id === taskToUpdate ? createData(row.id, task.title, task.description, task.deadline, task.priority, task.isComplete, actions(row.id)) : row));
+        setTaskToUpdate(-1);
       }
     }
-
+    setTaskDialogOpen(false);
   }
 
-  function deleteTask(title) {
-    setRows(rows.filter((row) => row.title !== title));
+  function deleteTask(id) {
+    setRows(rows.filter(row => row.id !== id));
   }
 
-  function deleteButton(title) {
-    return <Button onClick={() => deleteTask(title)}><HighlightOffIcon ></HighlightOffIcon>&nbsp;Delete</Button>
+  function deleteButton(id) {
+    return <Button onClick={() => deleteTask(id)}><HighlightOffIcon ></HighlightOffIcon>&nbsp;Delete</Button>
   }
 
-  function updateButton(title) {
+  function updateButton(id) {
     return <Button onClick={() => {
       setAction(false);
-      setTaskToUpdate(title);
+      setTaskToUpdate(id);
       openTaskDialog();
     }}><EditIcon></EditIcon>&nbsp;Edit</Button>
   }
@@ -232,9 +236,9 @@ function App() {
             </TableRow>
           </TableHead>
           <TableBody>
-            {rows.map((row) => (
+            {rows.map(row => (
               <TableRow
-                key={row.title}
+                key={row.id}
                 sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
               >
                 <TableCell component="th" scope="row" align="left">
@@ -244,7 +248,7 @@ function App() {
                 <TableCell align="left">{row.deadline}</TableCell>
                 <TableCell align="left">{row.priority}</TableCell>
                 <TableCell align="left">{row.isComplete}</TableCell>
-                <TableCell align="left">{<div>{row.actions.map((action) => action)}</div>}</TableCell>
+                <TableCell align="left">{<div>{row.actions}</div>}</TableCell>
               </TableRow>
             ))}
           </TableBody>
