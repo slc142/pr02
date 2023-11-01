@@ -1,5 +1,6 @@
 import * as React from 'react';
 import AppBar from '@mui/material/AppBar';
+import Checkbox from '@mui/material/Checkbox';
 import Toolbar from '@mui/material/Toolbar';
 import Typography from '@mui/material/Typography';
 import Button from '@mui/material/Button';
@@ -26,6 +27,7 @@ import FormControl from '@mui/material/FormControl';
 import FormLabel from '@mui/material/FormLabel';
 import EditIcon from '@mui/icons-material/Edit';
 import HighlightOffIcon from '@mui/icons-material/HighlightOff';
+import Stack from '@mui/material/Stack';
 import { DemoContainer } from '@mui/x-date-pickers/internals/demo';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
@@ -52,7 +54,7 @@ function App() {
   const [task, setTask] = React.useState({
     title: '',
     description: '',
-    deadline: dayjs().toString(),
+    deadline: dayjs().format('MM/DD/YYYY'),
     priority: 'Low',
     isComplete: false
   });
@@ -61,6 +63,15 @@ function App() {
     title: false,
     description: false
   });
+
+  function checkbox(index) {
+    return <Checkbox onChange={(e) => {
+      const updatedTasks = [...rows];
+      updatedTasks[index].isComplete = e.target.checked;
+      setRows(updatedTasks);
+      setTaskToUpdate(-1);
+    }}></Checkbox>
+  }
 
   const openTaskDialog = () => {
     setTaskDialogOpen(true);
@@ -100,7 +111,7 @@ function App() {
       setTask({
         title: '',
         description: '',
-        deadline: dayjs().toString(),
+        deadline: dayjs().format('MM/DD/YYYY'),
         priority: 'Low',
         isComplete: false
       });
@@ -171,7 +182,7 @@ function App() {
         />
         <LocalizationProvider dateAdapter={AdapterDayjs}>
           <DemoContainer components={['DatePicker']}>
-            <DatePicker label="Basic date picker" defaultValue={dayjs()} onChange={(e) => setTask({ ...task, deadline: e.toString() })} />
+            <DatePicker label="Basic date picker" defaultValue={dayjs()} onChange={(e) => setTask({ ...task, deadline: e.format('MM/DD/YYYY') })} />
           </DemoContainer>
         </LocalizationProvider>
         <FormControl>
@@ -200,16 +211,16 @@ function App() {
     <div className="App">
       <AppBar position="static">
         <Toolbar>
-          <IconButton
-            size="large"
-            edge="start"
-            color="inherit"
-            aria-label="menu"
-            sx={{ mr: 2 }}
-          >
-            <MenuIcon />
-          </IconButton>
+
           <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
+            <IconButton
+              size="large"
+              edge="start"
+              color="inherit"
+              aria-label="menu"
+              sx={{ position: 'relative', bottom: 2 }}>
+              <MenuIcon />
+            </IconButton>
             FRAMEWORKS
           </Typography>
           <Button color="inherit" variant="outlined" onClick={() => {
@@ -223,12 +234,12 @@ function App() {
         <Table sx={{ minWidth: 650 }} aria-label="simple table">
           <TableHead>
             <TableRow>
-              <TableCell align="left">Title</TableCell>
-              <TableCell align="left">Description</TableCell>
-              <TableCell align="left">Deadline</TableCell>
-              <TableCell align="left">Priority</TableCell>
-              <TableCell align="left">Is Complete</TableCell>
-              <TableCell align="left">Action</TableCell>
+              <TableCell align="center">Title</TableCell>
+              <TableCell align="center">Description</TableCell>
+              <TableCell align="center">Deadline</TableCell>
+              <TableCell align="center">Priority</TableCell>
+              <TableCell align="center">Is Complete</TableCell>
+              <TableCell align="center">Action</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
@@ -237,14 +248,14 @@ function App() {
                 key={index}
                 sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
               >
-                <TableCell component="th" scope="row" align="left">
+                <TableCell component="th" scope="row" align="center">
                   {row.title}
                 </TableCell>
-                <TableCell align="left">{row.description}</TableCell>
-                <TableCell align="left">{row.deadline}</TableCell>
-                <TableCell align="left">{row.priority}</TableCell>
-                <TableCell align="left">{row.isComplete}</TableCell>
-                <TableCell align="left">{<div>{row.isComplete ? updateButton(index) : [updateButton(index), deleteButton(index)]}</div>}</TableCell>
+                <TableCell align="center">{row.description}</TableCell>
+                <TableCell align="center">{row.deadline}</TableCell>
+                <TableCell align="center">{row.priority}</TableCell>
+                <TableCell align="center">{checkbox(index)}</TableCell>
+                <TableCell align="center">{<Stack>{row.isComplete ? deleteButton(index) : [updateButton(index), deleteButton(index)]}</Stack>}</TableCell>
               </TableRow>
             ))}
           </TableBody>
