@@ -59,8 +59,8 @@ function App() {
   });
 
   const [taskInputError, setTaskInputError] = React.useState({
-    title: false,
-    description: false
+    title: '',
+    description: ''
   });
 
   function checkbox(index) {
@@ -79,8 +79,8 @@ function App() {
   const closeTaskDialog = () => {
     setTaskDialogOpen(false);
     setTaskInputError({
-      title: false,
-      description: false
+      title: '',
+      description: ''
     })
   };
 
@@ -89,16 +89,16 @@ function App() {
     if (task.title === '') {
       // TODO: display message showing the error to the user
       isError = true;
-      setTaskInputError({ ...taskInputError, title: true });
+      setTaskInputError({ ...taskInputError, title: 'Title must not be empty' });
     } else if (rows.some((row) => row.title === task.title)) {
       // TODO: display message showing the error to the user
       isError = true;
-      setTaskInputError({ ...taskInputError, title: true });
+      setTaskInputError({ ...taskInputError, title: 'Title must be unique' });
     }
     if (task.description === '') {
       // TODO: display message showing the error to the user
       isError = true;
-      setTaskInputError({ ...taskInputError, description: true });
+      setTaskInputError({ ...taskInputError, description: 'Description must not be empty' });
     }
 
     if (isError) {
@@ -128,6 +128,10 @@ function App() {
       }
     }
     setTaskDialogOpen(false);
+    setTaskInputError({
+      title: '',
+      description: ''
+    })
   }
 
   function deleteTask(index) {

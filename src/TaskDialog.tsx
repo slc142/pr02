@@ -13,6 +13,7 @@ import FormControlLabel from '@mui/material/FormControlLabel';
 import FormControl from '@mui/material/FormControl';
 import FormLabel from '@mui/material/FormLabel';
 import EditIcon from '@mui/icons-material/Edit';
+import FormHelperText from '@mui/material/FormHelperText';
 import { DemoContainer } from '@mui/x-date-pickers/internals/demo';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
@@ -45,13 +46,13 @@ export default function TaskDialog({
                 variant="standard"
                 onChange={(e) => {
                     setTask({ ...task, title: e.target.value });
-                    setTaskInputError({ ...taskInputError, title: e.target.value.length === 0 });
                 }}
                 // hidden={!action}
                 disabled={!action}
                 required
-                error={taskInputError.title}
+                error={taskInputError.title !== ''}
             />
+            <FormHelperText>{taskInputError.title}</FormHelperText>
             <TextField
                 autoFocus
                 margin="dense"
@@ -62,11 +63,11 @@ export default function TaskDialog({
                 variant="standard"
                 onChange={(e) => {
                     setTask({ ...task, description: e.target.value });
-                    setTaskInputError({ ...taskInputError, description: e.target.value.length === 0 });
                 }}
                 required
-                error={taskInputError.description}
+                error={taskInputError.description !== ''}
             />
+            <FormHelperText>{taskInputError.description}</FormHelperText>
             <LocalizationProvider dateAdapter={AdapterDayjs}>
                 <DemoContainer components={['DatePicker']}>
                     <DatePicker label="Basic date picker" defaultValue={dayjs()} onChange={(e) => setTask({ ...task, deadline: e.format('MM/DD/YYYY') })} />
