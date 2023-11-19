@@ -28,7 +28,7 @@ export default function TaskDialog({
     task,
     setTask,
     taskInputError,
-    setTaskInputError,
+    oldTask,
     taskToUpdate
 }) {
     const dayjs = require('dayjs');
@@ -41,13 +41,12 @@ export default function TaskDialog({
                 id="title"
                 label="Title"
                 type="text"
-                defaultValue={taskToUpdate !== -1 ? task.title : ''}
+                defaultValue={taskToUpdate !== -1 && !action ? oldTask.title : ''}
                 fullWidth
                 variant="standard"
                 onChange={(e) => {
                     setTask({ ...task, title: e.target.value });
                 }}
-                // hidden={!action}
                 disabled={!action}
                 required
                 error={taskInputError.title !== ''}
@@ -59,6 +58,7 @@ export default function TaskDialog({
                 id="description"
                 label="Description"
                 type="text"
+                defaultValue={taskToUpdate !== -1 && !action ? oldTask.description : ''}
                 fullWidth
                 variant="standard"
                 onChange={(e) => {
@@ -70,7 +70,7 @@ export default function TaskDialog({
             <FormHelperText>{taskInputError.description}</FormHelperText>
             <LocalizationProvider dateAdapter={AdapterDayjs}>
                 <DemoContainer components={['DatePicker']}>
-                    <DatePicker label="Basic date picker" defaultValue={dayjs()} onChange={(e) => setTask({ ...task, deadline: e.format('MM/DD/YYYY') })} />
+                    <DatePicker label="Basic date picker" defaultValue={taskToUpdate !== -1 && !action ? dayjs(oldTask.date) : dayjs()} onChange={(e) => setTask({ ...task, deadline: e.format('MM/DD/YYYY') })} />
                 </DemoContainer>
             </LocalizationProvider>
             <FormControl>
@@ -80,7 +80,7 @@ export default function TaskDialog({
                     aria-labelledby="radio-buttons-group-label"
                     name="row-radio-buttons-group"
                     onChange={(e) => setTask({ ...task, priority: e.target.value })}
-                    defaultValue="Low"
+                    defaultValue={taskToUpdate !== -1 && !action ? oldTask.priority : 'Low'}
                 >
                     <FormControlLabel value="Low" control={<Radio />} label="Low" />
                     <FormControlLabel value="Med" control={<Radio />} label="Med" />

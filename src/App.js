@@ -48,6 +48,14 @@ function App() {
 
   const [taskToUpdate, setTaskToUpdate] = React.useState(-1);
 
+  const [oldTask, setOldTask] = React.useState({
+    title: '',
+    description: '',
+    deadline: dayjs().format('MM/DD/YYYY'),
+    priority: 'Low',
+    isComplete: false
+  });
+
   const [taskDialogOpen, setTaskDialogOpen] = React.useState(false);
 
   const [task, setTask] = React.useState({
@@ -87,16 +95,13 @@ function App() {
   const closeTaskDialogAndDoAction = () => {
     let isError = false;
     if (task.title === '') {
-      // TODO: display message showing the error to the user
       isError = true;
       setTaskInputError({ ...taskInputError, title: 'Title must not be empty' });
-    } else if (rows.some((row) => row.title === task.title)) {
-      // TODO: display message showing the error to the user
+    } else if (action && rows.some((row) => row.title === task.title)) {
       isError = true;
       setTaskInputError({ ...taskInputError, title: 'Title must be unique' });
     }
     if (task.description === '') {
-      // TODO: display message showing the error to the user
       isError = true;
       setTaskInputError({ ...taskInputError, description: 'Description must not be empty' });
     }
@@ -150,6 +155,8 @@ function App() {
     return <Button onClick={() => {
       setAction(false);
       setTaskToUpdate(index);
+      setOldTask({ ...rows[index] });
+      setTask({ ...rows[index] });
       openTaskDialog();
     }}><EditIcon></EditIcon>&nbsp;Edit</Button>
   }
@@ -171,11 +178,18 @@ function App() {
           </Typography>
           <Button color="inherit" variant="outlined" onClick={() => {
             setAction(true);
+            setTask({
+              title: '',
+              description: '',
+              deadline: dayjs().format('MM/DD/YYYY'),
+              priority: 'Low',
+              isComplete: false
+            });
             openTaskDialog();
           }}><AddCircleIcon ></AddCircleIcon>&nbsp;Add</Button>
         </Toolbar>
       </AppBar>
-      {<TaskDialog taskDialogOpen={taskDialogOpen} closeTaskDialog={closeTaskDialog} closeTaskDialogAndDoAction={closeTaskDialogAndDoAction} action={action} task={task} setTask={setTask} taskInputError={taskInputError} setTaskInputError={setTaskInputError} setTaskToUpdate={setTaskToUpdate} />}
+      {<TaskDialog taskDialogOpen={taskDialogOpen} closeTaskDialog={closeTaskDialog} closeTaskDialogAndDoAction={closeTaskDialogAndDoAction} action={action} task={task} setTask={setTask} taskInputError={taskInputError} setTaskInputError={setTaskInputError} setTaskToUpdate={setTaskToUpdate} oldTask={oldTask} />}
       <TableContainer component={Paper}>
         <Table sx={{ minWidth: 650 }} aria-label="simple table">
           <TableHead>
